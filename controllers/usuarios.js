@@ -1,6 +1,7 @@
 const { response } = require("express");
 const conString = require("../database/config");
 const sql = require("mssql");
+const bcrypt = require('bcryptjs');
 
 const getUsuarios = async(req, res) => {
     sql.on("error", (err) => {
@@ -62,6 +63,12 @@ const addUsuario = async(req, res = response) => {
             error: err,
         });
     });
+
+    //Encryptar password
+    const salt = bcrypt.genSaltSync();
+    password = bcrypt.hashSync(password, salt);
+
+    //Agregar el usuario
     sql.connect(conString).then((pool) => {
         return pool.request()
             .input("nombre", nombre)
