@@ -1,21 +1,23 @@
 const { response } = require('express');
 const bcrypt = require('bcryptjs');
+const conString = require("../database/config");
+const sql = require("mssql");
 
 const { generateJWT } = require('../helpers/jwt');
 
 const login = async(req, res = response) => {
     const { email, password } = req.body;
-    const usuario;
+    let usuario = null;
 
     try {
-        ql.on("error", (err) => {
+        sql.on("error", (err) => {
             console.log(err);
             res.json({
                 ok: false,
                 error: err,
             });
         });
-        sql.connect(conString).then((pool) => {
+        await sql.connect(conString).then((pool) => {
             return pool.request()
                 .input("email", email)
                 .execute("stp_usuarios_login");
@@ -38,9 +40,7 @@ const login = async(req, res = response) => {
                 msg: "Contraseña incorrecta"
             });
         }
-
         const token = await generateJWT(usuario.idUsuario);
-
         res.json({
             ok: true,
             token: token

@@ -56,27 +56,26 @@ const getUsuario = async(req, res = response) => {
 
 const addUsuario = async(req, res = response) => {
     const { nombre, email, password } = req.body;
-    sql.on("error", (err) => {
+    sql.on("error", err => {
         console.log(err);
         res.json({
             ok: false,
-            error: err,
+            error: "no se",
         });
     });
 
     //Encryptar password
     const salt = bcrypt.genSaltSync();
-    password = bcrypt.hashSync(password, salt);
+    const newPassword = bcrypt.hashSync(password, salt);
 
     //Agregar el usuario
     sql.connect(conString).then((pool) => {
         return pool.request()
             .input("nombre", nombre)
             .input("email", email)
-            .input("password", password)
+            .input("password", newPassword)
             .execute("stp_usuarios_add");
     }).then((result) => {
-        //const res = result.recordset[0];
         res.status(201).json({
             ok: true,
             usuario: result.recordset[0],
@@ -84,8 +83,8 @@ const addUsuario = async(req, res = response) => {
     }).catch((err) => {
         res.json({
             ok: false,
-            error: err,
-        });
+            error: "Error 2"
+        })
     });
 };
 
