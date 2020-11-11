@@ -9,8 +9,9 @@ app.use(cors({ origin: true }));
 app.use(express.json());
 
 //rutas
-app.use('/api/alumnos', require('./routes/alumnos'));
-app.use('/api/docentes', require('./routes/docentes'));
-app.use('/api/materias', require('./routes/materias'));
+//app.use('/api/alumnos', require('./routes/alumnos'));
+//app.use('/api/docentes', require('./routes/docentes'));
+//app.use('/api/materias', require('./routes/materias'));
+app.use('/api/usuarios', require('./routes/usuarios'));
 
 app.listen(process.env.PORT);
