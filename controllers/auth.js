@@ -4,6 +4,7 @@ const conString = require("../database/config");
 const sql = require("mssql");
 
 const { generateJWT } = require('../helpers/jwt');
+const { googleVerify } = require('../helpers/google-verify');
 
 const login = async(req, res = response) => {
     const { email, password } = req.body;
@@ -54,6 +55,27 @@ const login = async(req, res = response) => {
     }
 }
 
+const googleSingIn = async(req, res = response) => {
+    const googleToken = req.body.token;
+
+    try {
+        const { name, email, picture } = await googleVerify(googleToken);
+        res.json({
+            ok: true,
+            message: 'Logeado correctamente',
+            name,
+            email,
+            picture
+        });
+    } catch (error) {
+        res.status(401).json({
+            ok: false,
+            error: "Token no es correcto"
+        });
+    }
+}
+
 module.exports = {
     login,
+    googleSingIn
 }

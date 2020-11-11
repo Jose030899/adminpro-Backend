@@ -83,7 +83,7 @@ const addUsuario = async(req, res = response) => {
     }).catch((err) => {
         res.json({
             ok: false,
-            error: "Error 2"
+            err
         })
     });
 };
