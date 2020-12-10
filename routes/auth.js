@@ -1,9 +1,9 @@
 //Ruta api/login
 
 const { Router } = require('express');
-const { login, googleSingIn } = require('../controllers/auth');
+const { login, googleSingIn } = require('../bml/controllers/auth');
 const { check } = require('express-validator');
-const { validarCampos } = require('../middlewares/validar-campos')
+const { validarCampos } = require('../bml/middlewares/validar-campos')
 
 const router = Router();
 
