@@ -1,121 +1,162 @@
 const { response } = require("express");
 const bcrypt = require('bcryptjs');
+const { querySingle, query, execute } = require('../../dal/data-access');
+const { generateJWT } = require("../helpers/jwt");
 
 const getUsuarios = async(req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json({
-            ok: false,
-            error: err,
-        });
-    });
-    sql.connect(conString).then((pool) => {
-        return pool.request().execute("stp_usuarios_getall");
-    }).then((result) => {
-        //const res = result.recordset;
-        res.json({
-            ok: true,
-            usuarios: result.recordset,
-        });
-    }).catch((err) => {
-        res.json({
-            ok: false,
-            error: err,
-        });
+    const usuarios = await query('stp_usuarios_getall');
+    res.json({
+        status: true,
+        message: "Listado de usuarios",
+        data: usuarios,
     });
 };
 
 const getUsuario = async(req, res = response) => {
     const idUsuario = req.params.id;
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json({
-            ok: false,
-            error: err,
-        });
-    });
-    sql.connect(conString).then((pool) => {
-        return pool.request()
-            .input("idUsuario", idUsuario)
-            .execute("stp_usuarios_getbyid");
-    }).then((result) => {
-        //const res = result.recordset[0];
-        res.status(201).json({
-            ok: true,
-            usuario: result.recordset[0],
-        });
-    }).catch((err) => {
-        res.json({
-            ok: false,
-            error: err,
-        });
+    const sqlParams = [{
+        name: "idUsuario",
+        value: idUsuario,
+    }, ];
+    const usuario = await querySingle("stp_usuarios_getbiid");
+    res.json({
+        status: true,
+        message: `Usuario ${idUsuario}`,
+        data: usuario,
     });
 };
 
 const addUsuario = async(req, res = response) => {
     const { nombre, email, password } = req.body;
-    sql.on("error", err => {
-        console.log(err);
-        res.json({
-            ok: false,
-            error: "no se",
-        });
-    });
-
-    //Encryptar password
     const salt = bcrypt.genSaltSync();
     const newPassword = bcrypt.hashSync(password, salt);
+    const sqlParams = [{
+            'name': 'nombre',
+            'value': nombre
+        },
+        {
+            'name': 'email',
+            'value': email
+        },
+        {
+            'name': 'password',
+            'value': newPassword
+        },
+        {
+            'name': 'google',
+            'value': 0
+        },
+        {
+            'name': 'facebook',
+            'value': 0
+        },
+        {
+            'name': 'nativo',
+            'value': 1
+        },
+        {
+            'name': 'imagen',
+            'value': null
+        }
+    ];
+    usuario = await querySingle('stp_usuarios_add', sqlParams);
 
-    //Agregar el usuario
-    sql.connect(conString).then((pool) => {
-        return pool.request()
-            .input("nombre", nombre)
-            .input("email", email)
-            .input("password", newPassword)
-            .execute("stp_usuarios_add");
-    }).then((result) => {
-        res.status(201).json({
-            ok: true,
-            usuario: result.recordset[0],
-        });
-    }).catch((err) => {
+    if (usuario) {
         res.json({
-            ok: false,
-            err
+            status: true,
+            message: 'Registro exitoso',
+            data: usuario
+        });
+    } else {
+        res.json({
+            status: false,
+            message: 'Usuario ya creado',
+            data: null
         })
-    });
+    }
+    /*  sql.on("error", err => {
+         console.log(err);
+         res.json({
+             status: false,
+             error: "no se",
+         });
+     });
+
+     //Encryptar password
+     const salt = bcrypt.genSaltSync();
+     const newPassword = bcrypt.hashSync(password, salt);
+
+     //Agregar el usuario
+     sql.connect(conString).then((pool) => {
+         return pool.request()
+             .input("nombre", nombre)
+             .input("email", email)
+             .input("password", newPassword)
+             .execute("stp_usuarios_add");
+     }).then((result) => {
+         res.status(201).json({
+             status: true,
+             usuario: result.recordset[0],
+         });
+     }).catch((err) => {
+         res.json({
+             status: false,
+             err
+         })
+     }); */
 };
 
 const updateUsuario = async(req, res = respones) => {
     const idUsuario = req.params.id;
-    const { nombre, email, password } = req.params.body;
+    const { nombre, email, password, imagen } = req.body;
+    const salt = bcrypt.genSaltSync();
+    const newPassword = bcrypt.hashSync(password, salt);
 
-    sql.on("error", (err) => {
-        console.log(err);
+    try {
+        const sqlParams = [{
+                name: 'idUsuario',
+                values: idUsuario,
+            },
+            {
+                name: 'nombre',
+                values: nombre,
+            },
+            {
+                name: 'email',
+                values: email,
+            },
+            {
+                name: 'nombre',
+                values: nombre,
+            },
+            {
+                'name': 'password',
+                'value': newPassword
+            },
+            {
+                'name': 'imagen',
+                'value': imagen
+            },
+        ];
+
+        usuario = await execute('stp_usuarios_update', sqlParams);
+
+        const token = await generateJWT(usuario.idUsuario);
+
         res.json({
-            ok: false,
-            error: err,
+            status: true,
+            message: 'El usuario se actualizo',
+            data: { usuario, token }
         });
-    });
-    sql.connect(conString).then((pool) => {
-        return pool.request()
-            .input('idUsuario', idUsuario)
-            .input("nombre", nombre)
-            .input("email", email)
-            .input("password", password)
-            .execute("stp_usuarios_update");
-    }).then((result) => {
-        //const res = result.recordset[0];
-        res.status(201).json({
-            ok: true,
-            usuario: result.recordset[0],
-        });
-    }).catch((err) => {
+    } catch (error) {
         res.json({
-            ok: false,
-            error: err,
-        });
-    });
+            status: false,
+            message: 'No se puto actualizar el usuario',
+            data: error
+        })
+
+    }
+
 };
 
 const deleteUsuario = async(req, res = response) => {
@@ -124,7 +165,7 @@ const deleteUsuario = async(req, res = response) => {
     sql.on("error", (err) => {
         console.log(err);
         res.json({
-            ok: false,
+            status: false,
             error: err,
         });
     });
@@ -135,12 +176,12 @@ const deleteUsuario = async(req, res = response) => {
     }).then((result) => {
         //const res = result.recordset[0];
         res.status(201).json({
-            ok: true,
+            status: true,
             msg: "Usuario eliminado correctamente",
         });
     }).catch((err) => {
         res.json({
-            ok: false,
+            status: false,
             error: err,
         });
     });
