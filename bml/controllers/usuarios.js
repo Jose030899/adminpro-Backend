@@ -189,6 +189,7 @@ const deleteUsuario = async(req, res = response) => {
     }
 };
 
+
 module.exports = {
     getUsuarios,
     addUsuario,

@@ -2,7 +2,7 @@ const { response } = require('express');
 const bcrypt = require('bcryptjs');
 const { generateJWT } = require('../helpers/jwt');
 const { googleVerify } = require('../helpers/google-verify');
-const { querySingle } = require('../../dal/data-access');
+const { querySingle, execute } = require('../../dal/data-access');
 
 const login = async(req, res = response) => {
     const { email, password } = req.body;
@@ -38,7 +38,7 @@ const login = async(req, res = response) => {
         message: 'Acceso correcto',
         data: token
     });
-}
+};
 
 const googleSingIn = async(req, res = response) => {
     const googleToken = req.body.token;
@@ -145,7 +145,7 @@ const googleSingIn = async(req, res = response) => {
             data: null
         });
     }
-}
+};
 
 const loginToken = async(req, res = response) => {
     const { email, token } = req.body;
@@ -163,8 +163,45 @@ const loginToken = async(req, res = response) => {
     });
 };
 
+
+const resetPassword = async(req, res) => {
+    const { email, password } = req.body;
+    const sqlParam = [{
+        'name': 'email',
+        'value': email
+    }];
+    usuario = await querySingle('stp_usuarios_login', sqlParam)
+
+    const salt = bcrypt.genSaltSync();
+    const newPassword = bcrypt.hashSync(password, salt);
+    const sqlParam2 = [{
+            'name': 'email',
+            'value': email
+        },
+        {
+            'name': 'password',
+            'value': newPassword
+        }
+    ];
+    usuarios = await execute('stp_usuarios_resetPass', sqlParam2);
+    if (usuarios != 0) {
+        res.json({
+            status: true,
+            message: 'Contraseña cambiada satisfactoriamente',
+            data: usuarios
+        });
+    } else {
+        res.json({
+            status: false,
+            message: 'Error al tratar de cambiar la contraseña',
+            data: usuarios
+        });
+    }
+};
+
 module.exports = {
     login,
     googleSingIn,
-    loginToken
+    loginToken,
+    resetPassword
 }

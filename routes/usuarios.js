@@ -2,7 +2,7 @@
 
 const { Router } = require("express");
 const { check } = require("express-validator");
-const { addUsuario, getUsuarios, updateUsuario, deleteUsuario, getUsuario } = require("../bml/controllers/usuarios");
+const { addUsuario, getUsuarios, updateUsuario, deleteUsuario, getUsuario, resetPassword } = require("../bml/controllers/usuarios");
 const { validarCampos } = require("../bml/middlewares/validar-campos");
 const { validarJWT } = require("../bml/middlewares/validar-jwt");
 
@@ -31,6 +31,8 @@ router.put("/:id", [
     validarCampos,
 ], updateUsuario);
 //delete
-router.delete('/:iddelete', deleteUsuario)
+router.delete('/:iddelete', deleteUsuario);
+
+
 
 module.exports = router;
