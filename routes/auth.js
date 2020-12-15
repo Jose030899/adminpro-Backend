@@ -1,7 +1,7 @@
 //Ruta api/login
 
 const { Router } = require('express');
-const { login, googleSingIn, renewToken } = require('../bml/controllers/auth');
+const { login, googleSingIn, loginToken } = require('../bml/controllers/auth');
 const { check } = require('express-validator');
 const { validarCampos } = require('../bml/middlewares/validar-campos')
 const { validarJWT } = require('../bml/middlewares/validar-jwt')
@@ -23,5 +23,9 @@ router.post('/google', [
     googleSingIn
 );
 
-router.get('/renew', validarJWT, renewToken);
+router.post("/renew", [
+    check("email", "El email es obligatorio").not().isEmpty(),
+    check("token", "El token es obligatorio").not().isEmpty(),
+    validarCampos,
+], loginToken);
 module.exports = router;

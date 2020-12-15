@@ -5,105 +5,104 @@ const { generateJWT } = require("../helpers/jwt");
 
 const getUsuarios = async(req, res) => {
     const usuarios = await query('stp_usuarios_getall');
-    res.json({
-        status: true,
-        message: "Listado de usuarios",
-        data: usuarios,
-    });
-};
-
-const getUsuario = async(req, res = response) => {
-    const idUsuario = req.params.id;
-    const sqlParams = [{
-        name: "idUsuario",
-        value: idUsuario,
-    }, ];
-    const usuario = await querySingle("stp_usuarios_getbiid");
-    res.json({
-        status: true,
-        message: `Usuario ${idUsuario}`,
-        data: usuario,
-    });
-};
-
-const addUsuario = async(req, res = response) => {
-    const { nombre, email, password } = req.body;
-    const salt = bcrypt.genSaltSync();
-    const newPassword = bcrypt.hashSync(password, salt);
-    const sqlParams = [{
-            'name': 'nombre',
-            'value': nombre
-        },
-        {
-            'name': 'email',
-            'value': email
-        },
-        {
-            'name': 'password',
-            'value': newPassword
-        },
-        {
-            'name': 'google',
-            'value': 0
-        },
-        {
-            'name': 'facebook',
-            'value': 0
-        },
-        {
-            'name': 'nativo',
-            'value': 1
-        },
-        {
-            'name': 'imagen',
-            'value': null
-        }
-    ];
-    usuario = await querySingle('stp_usuarios_add', sqlParams);
-
-    if (usuario) {
+    if (usuarios) {
         res.json({
             status: true,
-            message: 'Registro exitoso',
-            data: usuario
+            message: "Listado de usuarios",
+            data: usuarios,
         });
     } else {
         res.json({
             status: false,
-            message: 'Usuario ya creado',
+            message: res.message,
+            data: null,
+        });
+    }
+};
+
+const getUsuario = async(req, res = response) => {
+    const { id } = req.params;
+    const sqlParams = [{
+        name: "idUsuario",
+        value: id,
+    }, ];
+    let usuario = await querySingle("stp_usuarios_getbyid", sqlParams);
+    if (usuario) {
+        res.json({
+            status: true,
+            message: `Usuario ${id}`,
+            data: usuario,
+        });
+    } else {
+        res.json({
+            status: true,
+            message: res.message,
+            data: null,
+        });
+    }
+};
+
+const addUsuario = async(req, res) => {
+    const { nombre, email, password } = req.body;
+    const sqlParamsVal = [{
+        'name': 'email',
+        'value': email
+    }]
+
+    let usuario = await querySingle('stp_usuarios_login', sqlParamsVal);
+    if (!usuario) {
+        const salt = bcrypt.genSaltSync();
+        const newPassword = bcrypt.hashSync(password, salt);
+        const sqlParams = [{
+                'name': 'nombre',
+                'value': nombre
+            },
+            {
+                'name': 'email',
+                'value': email
+            },
+            {
+                'name': 'password',
+                'value': newPassword
+            },
+            {
+                'name': 'google',
+                'value': 0
+            },
+            {
+                'name': 'facebook',
+                'value': 0
+            },
+            {
+                'name': 'nativo',
+                'value': 1
+            },
+            {
+                'name': 'imagen',
+                'value': null
+            }
+        ];
+        usuario = await querySingle('stp_usuarios_add', sqlParams);
+        if (usuario) {
+            res.json({
+                status: true,
+                message: 'Usuario agregado exitosamente',
+                data: usuario
+            });
+        } else {
+            res.json({
+                status: false,
+                message: 'Ocurrio un error al agregar el usuario',
+                data: null
+            });
+        }
+    } else {
+        res.json({
+            status: false,
+            message: 'Ya existe un usuario con ese email',
             data: null
         })
     }
-    /*  sql.on("error", err => {
-         console.log(err);
-         res.json({
-             status: false,
-             error: "no se",
-         });
-     });
-
-     //Encryptar password
-     const salt = bcrypt.genSaltSync();
-     const newPassword = bcrypt.hashSync(password, salt);
-
-     //Agregar el usuario
-     sql.connect(conString).then((pool) => {
-         return pool.request()
-             .input("nombre", nombre)
-             .input("email", email)
-             .input("password", newPassword)
-             .execute("stp_usuarios_add");
-     }).then((result) => {
-         res.status(201).json({
-             status: true,
-             usuario: result.recordset[0],
-         });
-     }).catch((err) => {
-         res.json({
-             status: false,
-             err
-         })
-     }); */
 };
 
 const updateUsuario = async(req, res = respones) => {
@@ -115,23 +114,31 @@ const updateUsuario = async(req, res = respones) => {
     try {
         const sqlParams = [{
                 name: 'idUsuario',
-                values: idUsuario,
+                'value': idUsuario,
             },
             {
                 name: 'nombre',
-                values: nombre,
+                'value': nombre,
             },
             {
                 name: 'email',
-                values: email,
-            },
-            {
-                name: 'nombre',
-                values: nombre,
+                'value': email,
             },
             {
                 'name': 'password',
                 'value': newPassword
+            },
+            {
+                name: 'google',
+                'value': 0,
+            },
+            {
+                name: 'facebook',
+                'value': 0,
+            },
+            {
+                name: 'nativo',
+                'value': 1,
             },
             {
                 'name': 'imagen',
@@ -160,32 +167,27 @@ const updateUsuario = async(req, res = respones) => {
 };
 
 const deleteUsuario = async(req, res = response) => {
-    const idUsuario = req.params.id;
+    const { iddelete } = req.params;
+    const sqlParams = [{
+        'name': 'idUsuario',
+        'value': iddelete
+    }];
 
-    sql.on("error", (err) => {
-        console.log(err);
+    usuario = await execute('stp_usuarios_delete', sqlParams);
+    if (usuario != 0) {
         res.json({
-            status: false,
-            error: err,
-        });
-    });
-    sql.connect(conString).then((pool) => {
-        return pool.request()
-            .input('idUsuario', idUsuario)
-            .execute("stp_usuarios_delate");
-    }).then((result) => {
-        //const res = result.recordset[0];
-        res.status(201).json({
             status: true,
-            msg: "Usuario eliminado correctamente",
+            message: `El usuario ${iddelete} se elimino `,
+            data: usuario
         });
-    }).catch((err) => {
+    } else {
         res.json({
             status: false,
-            error: err,
+            message: 'No se puto eliminar el usuario',
+            data: null
         });
-    });
-}
+    }
+};
 
 module.exports = {
     getUsuarios,

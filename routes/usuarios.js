@@ -32,8 +32,6 @@ router.put("/:id", [
     validarCampos,
 ], updateUsuario);
 //delete
-router.delete('/:id',
-    validarJWT,
-    deleteUsuario)
+router.delete('/:iddelete', deleteUsuario)
 
 module.exports = router;

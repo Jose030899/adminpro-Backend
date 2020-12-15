@@ -36,7 +36,7 @@ const login = async(req, res = response) => {
     res.json({
         status: true,
         message: 'Acceso correcto',
-        token: token
+        data: token
     });
 }
 
@@ -136,27 +136,35 @@ const googleSingIn = async(req, res = response) => {
         res.json({
             status: true,
             message: 'Acceso correcto',
-            token: token
+            data: token
         });
     } catch (error) {
-        res.status(401).json({
+        res.json({
             status: false,
-            error: 'El token de google no es correcto'
+            message: 'El token de google no es correcto',
+            data: null
         });
     }
 }
 
-const renewToken = async(req, res = response) => {
-    const { id } = req.id;
-    const token = await generateJWT(id);
+const loginToken = async(req, res = response) => {
+    const { email, token } = req.body;
+    const sqlParams = [{
+        name: "email",
+        value: email,
+    }, ];
+    //const { id } = req.id;
+    const usuario = await querySingle("stp_usuarios_login", sqlParams);
+    const tokenNew = await generateJWT(usuario.idUsuario);
     res.json({
         status: true,
-        message: 'Token nuevo',
-        data: token
+        message: 'Acceso Correcto',
+        data: tokenNew,
     });
-}
+};
+
 module.exports = {
     login,
     googleSingIn,
-    renewToken
+    loginToken
 }
