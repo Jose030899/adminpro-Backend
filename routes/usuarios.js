@@ -10,7 +10,6 @@ const router = Router();
 
 //getall
 router.get("/",
-    validarJWT,
     getUsuarios);
 //id
 router.get('/:id',

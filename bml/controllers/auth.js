@@ -52,11 +52,11 @@ const googleSingIn = async(req, res = response) => {
             'name': 'email',
             'value': email
         }];
-        console.log(name);
-        console.log(email);
-        console.log(picture);
+        // console.log(name);
+        // console.log(email);
+        // console.log(picture);
         usuario = await querySingle('stp_usuarios_login', sqlParams);
-        console.log(usuario);
+        // console.log(usuario);
 
         //Verificar si existe en bd
         if (!usuario) {

@@ -1,133 +1,41 @@
 //Ruta api/materias
-const Router = require("express");
-const conString = require("../database/config");
-const sql = require("mssql");
+const { Router } = require("express");
+const { check } = require("express-validator");
+const { getMaterias, getMateria, addMateria, updateMateria, deleteMateria } = require("../bml/controllers/materias");
+const { validarCampos } = require("../bml/middlewares/validar-campos");
 
 const router = Router();
 
 //getall
-router.get("/", (req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json(err);
-    });
-    sql
-        .connect(conString)
-        .then((pool) => {
-            return pool.request().execute("stp_materias_getall");
-        })
-        .then((result) => {
-            return res.json(result.recordset);
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
+router.get("/", getMaterias);
 
 
 //getbyid
-router.get("/:id", (req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json(err);
-    });
-    sql
-        .connect(conString)
-        .then((pool) => {
-            return pool
-                .request()
-                .input("idMateria", sql.Int, req.params.id)
-                .execute("stp_materias_getbyid");
-        })
-        .then((result) => {
-            return res.json(result.recordset[0]);
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
+router.get('/:id', getMateria);
 
 //Add
-router.post("/", (req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json(err);
-    });
-    sql
-        .connect(conString)
-        .then((pool) => {
-            return pool
-                .request()
-                .input("nombre", sql.NVarChar, req.body.nombre)
-                .input("horas", sql.Int, req.body.horas)
-                .input("horasp", sql.Int, req.body.horasp)
-                .input("horast", sql.Int, req.body.horast)
-                .input("creditos", sql.Int, req.body.creditos)
-                .execute("stp_materias_add");
-        })
-        .then((result) => {
-            res.status(201).json({
-                status: "OK",
-                msg: "Materia agregada correctamente",
-            });
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
+//agregar
+router.post("/", [
+    check("nombre", 'El nombre es requerido').not().isEmpty(),
+    check("horas", 'Las horas son requeridas').not().isEmpty(),
+    check("horasp", 'Las horasp son requeridas').not().isEmpty(),
+    check("horast", 'Las horast son requeridas').not().isEmpty(),
+    check("creditos", 'Los creditos son requeridas').not().isEmpty(),
+    validarCampos,
+], addMateria);
+
 
 //update
-router.put("/:id", (req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json(err);
-    });
-    sql
-        .connect(conString)
-        .then((pool) => {
-            return pool
-                .request()
-                .input("idMateria", sql.Int, req.params.id)
-                .input("nombre", sql.NVarChar, req.body.nombre)
-                .input("horas", sql.Int, req.body.horas)
-                .input("horasp", sql.Int, req.body.horasp)
-                .input("horast", sql.Int, req.body.horast)
-                .input("creditos", sql.Int, req.body.creditos)
-                .execute("stp_materias_update");
-        })
-        .then((result) => {
-            res.status(201).json({
-                status: "OK",
-                msg: "Materia editada correctamente"
-            })
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
+router.put("/:id", [
+    check("nombre", 'El nombre es requerido').not().isEmpty(),
+    check("horas", 'Las horas son requeridas').not().isEmpty(),
+    check("horasp", 'Las horasp son requeridas').not().isEmpty(),
+    check("horast", 'Las horast son requeridas').not().isEmpty(),
+    check("creditos", 'Los creditos son requeridas').not().isEmpty(),
+    validarCampos,
+], updateMateria);
 
-router.delete("/:id", (req, res) => {
-    sql.on("error", (err) => {
-        console.log(err);
-        res.json(err);
-    });
-    sql
-        .connect(conString)
-        .then((pool) => {
-            return pool
-                .request()
-                .input("idMateria", sql.Int, req.params.id)
-                .execute("stp_materias_delete");
-        })
-        .then((result) => {
-            res.status(201).json({
-                status: "OK",
-                msg: "Materia eliminada correctamente",
-            });
-        })
-        .catch((err) => {
-            res.json(err);
-        });
-});
+//delete
+router.delete('/:iddelete', deleteMateria);
 
 module.exports = router;

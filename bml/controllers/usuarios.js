@@ -35,8 +35,8 @@ const getUsuario = async(req, res = response) => {
         });
     } else {
         res.json({
-            status: true,
-            message: res.message,
+            status: false,
+            message: 'Usuario no encontrado',
             data: null,
         });
     }
@@ -113,15 +113,15 @@ const updateUsuario = async(req, res = respones) => {
 
     try {
         const sqlParams = [{
-                name: 'idUsuario',
+                'name': 'idUsuario',
                 'value': idUsuario,
             },
             {
-                name: 'nombre',
+                'name': 'nombre',
                 'value': nombre,
             },
             {
-                name: 'email',
+                'name': 'email',
                 'value': email,
             },
             {
@@ -129,15 +129,15 @@ const updateUsuario = async(req, res = respones) => {
                 'value': newPassword
             },
             {
-                name: 'google',
+                'name': 'google',
                 'value': 0,
             },
             {
-                name: 'facebook',
+                'name': 'facebook',
                 'value': 0,
             },
             {
-                name: 'nativo',
+                'name': 'nativo',
                 'value': 1,
             },
             {
@@ -158,8 +158,8 @@ const updateUsuario = async(req, res = respones) => {
     } catch (error) {
         res.json({
             status: false,
-            message: 'No se puto actualizar el usuario',
-            data: error
+            message: 'No se pudo actualizar el usuario',
+            data: null
         })
 
     }
